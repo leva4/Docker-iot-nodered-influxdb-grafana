@@ -2,7 +2,7 @@ version: '3.8'
 services: 
 
   node-red:
-    container_name: docker_Node-RED1
+    container_name: docker_Node-RED
     restart: unless-stopped
     build:
       context: ./node-red
@@ -16,7 +16,7 @@ services:
       - influxdb
 
   influxdb:
-    container_name: docker_InfluxDB1
+    container_name: docker_InfluxDB
     restart: unless-stopped
     build:
       context: ./influxdb
@@ -30,10 +30,10 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=FESB
       - DOCKER_INFLUXDB_INIT_BUCKET=TTN
     volumes:
-      - "influxdb-data1:/var/lib/influxdb"
+      - "influxdb-data:/var/lib/influxdb"
 
   grafana:
-    container_name: docker_Grafana1
+    container_name: docker_Grafana
     restart: unless-stopped
     build:
       context: ./grafana
@@ -42,11 +42,10 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./dashboards:/var/lib/grafana/dashboards
-      - ./grafana-dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
-      - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+        - "grafana-data:/var/lib/grafana"
     links:
         - influxdb
     
 volumes:
-  influxdb-data1:
+  influxdb-data:
+  grafana-data:
