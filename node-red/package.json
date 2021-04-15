@@ -1,0 +1,12 @@
+{
+    "name": "klevarda-node-red-project",
+    "description": "A Node-RED Project",
+    "version": "0.0.1",
+    "dependencies": {
+        "node-red": "*",
+        "node-red-contrib-influxdb": "*"
+    },
+    "scripts": {
+        "start": "node $NODE_OPTIONS node_modules/node-red/red.js $FLOWS"
+    }
+}

@@ -1,0 +1,11 @@
+Za dodat InfluxDB kao datasource,
+koristiti FLUX kao querylanguage.
+
+Url: http://influxdb:8086
+Access: Server
+
++ Custom header
+Header: Authorization
+Value: Token {token Value}
+
+Organisation: OrganisationID(iz influxdb)

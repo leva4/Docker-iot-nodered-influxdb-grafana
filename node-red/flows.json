@@ -1,0 +1,258 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "13d32e6c.69737a",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "TTN IN",
+        "topic": "+/devices/+/up",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "e8db9c97.5b8098",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "ec5da26f.ede1f8",
+                "c4f3f0c3.42c31",
+                "d12a55b0.6b7c58",
+                "c7593290.c53a2"
+            ]
+        ]
+    },
+    {
+        "id": "ec5da26f.ede1f8",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "c4f3f0c3.42c31",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "func": "node.warn(msg);\n\n// When using a Decoder in the application's Payload Formats in\n// TTN Console, then msg.payload.payload_fields is also available.\nconst bytes = Buffer.from(msg.payload.payload_raw, 'base64');\nconst port = msg.payload.port;\n\nmsg.payload.payload_fields = {\n  // Unsigned 16 bits integers, MSB\n  battery: (bytes[0] << 8 | bytes[1]) / 1000,\n  light: bytes[2] << 8 | bytes[3],\n\n  // Sign-extend 16 bits to 32 bits to support negative values: shift\n  // the MSB 16 bits too far to the left, followed by a sign-propagating\n  // right shift of 16 bits to effectively shift the MSB 8 bits.\n  temperature: (bytes[4] << 24 >> 16 | bytes[5]) / 100\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 460,
+        "y": 240,
+        "wires": [
+            [
+                "e7e8f6d6.56ad88"
+            ]
+        ]
+    },
+    {
+        "id": "e7e8f6d6.56ad88",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "battery,light,temperature",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "d12a55b0.6b7c58",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "decode msg.payload.payload_fields",
+        "func": "node.warn(msg);\n\n// When using a Decoder in the application's Payload Formats in\n// TTN Console, then msg.payload.payload_fields is also available.\nconst bytes = Buffer.from(msg.payload.payload_raw, 'base64');\nconst port = msg.payload.port;\nconst payload_size = msg.payload.payload_fields.payload_size;\n\nmsg.payload.payload_fields = {\n  // Unsigned 16 bits integers, MSB\n  battery: bytes.readUInt16BE(0) / 1000,\n  light: bytes.readUInt16BE(2),\n  // Signed 16 bits integer, MSB\n  temperature: bytes.readInt16BE(4) / 100 ,\n  payload_size\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 540,
+        "y": 360,
+        "wires": [
+            [
+                "e93c3525.744768",
+                "375be8d7.a8b9a8"
+            ]
+        ]
+    },
+    {
+        "id": "e93c3525.744768",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "built-in Buffer utility methods",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1110,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "c7593290.c53a2",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "func": "msg.payload = {\n  topic: msg.topic,\n  timestamp: new Date().toISOString(),\n  payload: msg.payload,\n  error: msg.error\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 440,
+        "y": 500,
+        "wires": [
+            [
+                "42c4b179.acf088"
+            ]
+        ]
+    },
+    {
+        "id": "42c4b179.acf088",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "error",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "2ee191d3.038046",
+        "type": "influxdb out",
+        "z": "f6f2187d.f17ca8",
+        "influxdb": "a77891e8.5070c8",
+        "name": "TTN-to-influx-metadata",
+        "measurement": "metadata",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "FESB",
+        "bucket": "TTN",
+        "x": 1220,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "375be8d7.a8b9a8",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "flat json for influxdb",
+        "func": "node.warn(msg);\n\n// get payload from full msg\nconst { payload } = msg;\n// get metadata from payload\nconst { metadata } = payload;\n// get app ID, dev ID, counter, confirmed, payload fields from payload\nconst { app_id, dev_id, counter, confirmed, payload_fields } = payload;\n// get battery, light, temperature from payload fields\n//const { battery, light, temperature } = payload_fields;\nconst { payload_size } = payload_fields;\n\n// get number of gateways which got message\nconst gateway_count = metadata.gateways.length;\n\n\nconst spreading_factor = parseSpreadingFactor(metadata.data_rate);\n\n\n\n// create influx tags\nconst influx_tags = {\n    applicationId: app_id,\n    deviceId: dev_id,\n    frequency: metadata.frequency,\n    payload_size,\n    spreading_factor,\n    gateway_count,\n    confirmed\n}\n\nlet gateways = [];\n\nfor (let gateway of metadata.gateways) {\n    let gtw_id = gateway.gtw_id;\n    let time = metadata.time;\n\n    delete gateway.gtw_id;\n    delete gateway.time;\n    delete gateway.timestamp;\n    delete gateway.rf_chain;\n    delete gateway.latitude;\n    delete gateway.longitude;\n    delete gateway.altitude;\n    delete gateway.channel;\n\n    gateways.push([\n        //fields\n        {\n            ...gateway,\n            gtw_time: time,\n            counter,\n            // battery\n        },\n        //tags\n        {\n            ...influx_tags,\n            gtw_id,\n            gtw_name: getGtwName(gtw_id)\n        }\n    ]);\n}\n\n\nmsg.payload = [\n    ...gateways\n];\n\nreturn msg;\n\nfunction getGtwName(gtw_id) {\n    if (gtw_id == \"eui-b827ebfffebf3c80\") {\n        return \"FESB_GROUND_FLOOR\";\n    }\n    else if (gtw_id == \"eui-c0ee40ffff29f37a\") {\n        return \"FESB_FIRST_FLOOR\";\n    }\n    else if (gtw_id == \"eui-b827ebfffe069886\") {\n        return \"FESB_ROOF\";\n    }\n\n    return \"DEVICE_NAME_UNKNOWN\";\n}\n\nfunction parseSpreadingFactor(data_rate) {\n    //example value: SF9BW125\n    const regexResult = data_rate.match(/\\d+/);\n\n    if (regexResult != null) {\n        return parseInt(regexResult[0]);\n    }\n\n    node.warn('parseSpreadingFactor return null');\n    return null;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 960,
+        "y": 440,
+        "wires": [
+            [
+                "6d818553.32b86c",
+                "2ee191d3.038046"
+            ]
+        ]
+    },
+    {
+        "id": "6d818553.32b86c",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "influx-debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1200,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "e8db9c97.5b8098",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "eu.thethings.network",
+        "port": "8883",
+        "tls": "917bc2b7.8633f8",
+        "clientid": "",
+        "usetls": true,
+        "compatmode": false,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": ""
+    },
+    {
+        "id": "a77891e8.5070c8",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "917bc2b7.8633f8",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true
+    }
+]
