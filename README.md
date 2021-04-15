@@ -1,3 +1,3 @@
-# Docker-iot-nodered-influxdb-grafana
+# Docker-ttn-nodered-influxdb-grafana
 
 docker-compose up
